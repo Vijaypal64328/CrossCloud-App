@@ -54,9 +54,9 @@ const RecentFiles = ({ files }) => {
                     <tr>
                         <th className="px-4 py-3 text-left">Name</th>
                         <th className="px-4 py-3 text-left">Size</th>
-                        <th className="px-4 py-3 text-left">Uploaded by</th>
-                        <th className="px-4 py-3 text-left">Modified</th>
-                        <th className="px-4 py-3 text-left">Sharing</th>
+                        <th className="px-4 py-3 text-left hidden sm:table-cell">Uploaded by</th>
+                        <th className="px-4 py-3 text-left hidden sm:table-cell">Modified</th>
+                        <th className="px-4 py-3 text-left hidden sm:table-cell">Sharing</th>
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -73,13 +73,13 @@ const RecentFiles = ({ files }) => {
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                                 {formatFileSize(file.size)}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                 {file.uploadedBy || 'You'}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                                 {formatDate(file.uploadedAt)}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
+                            <td className="px-4 py-3 whitespace-nowrap hidden sm:table-cell">
                                 <div className="flex items-center">
                                     {file.public ? (
                                         <div className="flex items-center text-xs text-green-600">
@@ -99,7 +99,7 @@ const RecentFiles = ({ files }) => {
 
                     {files.length === 0 && (
                         <tr>
-                            <td colSpan={5} className="px-4 py-12 text-center">
+                            <td colSpan={2} className="px-4 py-12 text-center sm:col-span-5">
                                 <div className="flex flex-col items-center justify-center gap-3">
                                     <FileText size={40} className="text-purple-300" />
                                     <p className="text-gray-500 font-medium">No files uploaded yet.</p>

@@ -12,6 +12,8 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
+    "http://localhost:3000",
+    "http://192.168.41.26:3000",
     "https://crosscloud-app-frontend.onrender.com"
   ],
   credentials: true,

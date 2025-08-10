@@ -18,6 +18,7 @@ const Navbar = ({activeMenu}) => {
         <div className="flex items-center justify-between gap-5 bg-white/90 shadow-md backdrop-blur-lg py-4 px-4 sm:px-7 sticky top-0 z-40">
             {/* Left side - menu button and title*/}
             <div className="flex items-center gap-5">
+                {/* Show menu icon on mobile, tablet, and iPad (below lg) */}
                 <button
                     onClick={() => setOpenSideMenu(!openSideMenu)}
                     className="block lg:hidden text-black hover:bg-gray-100 p-1 rounded transition-colors">
@@ -39,10 +40,12 @@ const Navbar = ({activeMenu}) => {
             {/* Right side - credits and user button*/}
             <SignedIn>
                 <div className="flex items-center gap-4">
+                    {/* Show icon only on mobile, icon+text on sm and up */}
                     <Link to="/subscriptions">
-                        <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-semibold shadow-sm border border-blue-100 hover:bg-blue-100 transition-all">
+                        <span className="flex items-center px-2 py-1 rounded-full bg-blue-50 text-blue-600 font-semibold shadow-sm border border-blue-100 hover:bg-blue-100 transition-all">
                             <Wallet className="w-5 h-5 text-blue-400" />
-                            {credits} Credits
+                            <span className="ml-1">{credits}</span>
+                            <span className="hidden sm:inline"> Credits</span>
                         </span>
                     </Link>
                     <div className="relative">
@@ -52,9 +55,9 @@ const Navbar = ({activeMenu}) => {
             </SignedIn>
 
             {/* Mobile side menu */}
+            {/* Slide-in menu for mobile, tablet, and iPad (below lg) */}
             {openSideMenu && (
                 <div className="fixed top-[73px] left-0 right-0 bg-white border-b border-gray-200 lg:hidden z-20">
-                    {/* Side menu bar */}
                     <SideMenu activeMenu={activeMenu}/>
                 </div>
             )}

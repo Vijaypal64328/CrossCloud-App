@@ -11,6 +11,7 @@ pnpm-lock.yaml
 .env.test.local
 .env.production.local
 .env.render
+.env.production
 # Allow example files
 # .env.example
 

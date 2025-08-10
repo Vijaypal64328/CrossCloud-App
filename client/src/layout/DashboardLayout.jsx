@@ -10,11 +10,12 @@ const DashboardLayout = ({children, activeMenu}) => {
             <Navbar activeMenu={activeMenu}/>
             {user && (
                 <div className="flex">
-                    <div className="max-[1080px]:hidden">
-                        {/* Sidemenu goes here */}
+                    {/* Sidebar always visible on large screens (laptop/PC) */}
+                    <div className="hidden lg:block">
                         <SideMenu activeMenu={activeMenu}/>
                     </div>
-                    <div className="grow mx-5">{children}</div>
+                    {/* Main content area, full width on mobile/tablet, with margin on desktop */}
+                    <div className="grow mx-2 sm:mx-5">{children}</div>
                 </div>
             )}
         </div>

@@ -35,7 +35,7 @@ const DashboardUpload = ({ files, onFileChange, onUpload, uploading, onRemoveFil
     };
 
     return (
-        <div className="w-full">
+    <div className="w-full max-w-[320px] sm:max-w-md mx-auto">
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                     <ArrowUpFromLine className="text-purple-500" size={18} />

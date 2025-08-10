@@ -36,19 +36,15 @@ const UploadBox = ({ files, onFileChange, onUpload, uploading, onRemoveFile, rem
     };
 
     return (
-        <div className="w-full max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-2">
+        <div className="w-full max-w-md mx-auto">
+            <div className="flex items-center justify-between mb-2 px-2 sm:px-0">
                 <div className="flex items-center gap-2">
                     <ArrowUpFromLine className="text-blue-600" size={20} />
                     <h2 className="text-lg font-medium">Upload Files</h2>
                 </div>
-                <div className="text-sm text-gray-500">
-                    {remainingCredits} credits remaining
-                </div>
             </div>
-
             <div
-                className="border-dashed border-2 border-gray-300 rounded-lg p-8 text-center bg-white cursor-pointer hover:border-blue-500 transition-colors"
+                className="border-dashed border-2 border-gray-300 rounded-lg p-3 sm:p-6 text-center bg-white cursor-pointer hover:border-purple-500 transition-colors"
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onClick={handleBrowseClick}

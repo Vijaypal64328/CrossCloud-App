@@ -8,7 +8,7 @@
 @layer base {
     body {
         background-color: #fcfbfc;
-        overflow-y: hidden;
+        /* overflow-y: hidden; */
     }
 }
 
