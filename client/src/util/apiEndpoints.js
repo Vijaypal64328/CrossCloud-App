@@ -1,4 +1,5 @@
-const BASE_URL = 'https://crosscloud-app-backend.onrender.com';
+// Use environment variable for BASE_URL, with fallback to localhost
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const apiEndpoints = {
     FETCH_FILES: `${BASE_URL}/files/my`,
