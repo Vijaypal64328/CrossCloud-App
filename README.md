@@ -156,7 +156,7 @@ npm install
 
 - Local Frontend: [http://localhost:5173](http://localhost:5173)
 - Local Backend: [http://localhost:5000](http://localhost:5000)
-- Deployed Frontend: [https://crosscloud-app.onrender.com](https://crosscloud-app.onrender.com)
+- Deployed Frontend: [https://crosscloud-app.onrender.com](https://crosscloud-app-frontend.onrender.com)
 - Deployed Backend: [https://crosscloud-app-backend.onrender.com](https://crosscloud-app-backend.onrender.com)
 
 ---
