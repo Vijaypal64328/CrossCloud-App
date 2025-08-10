@@ -7,12 +7,16 @@ CrossCloud is a modern, secure file sharing and storage platform. Users can uplo
 ---
 Here is the images of UI
 1. LANDING PAGE
+---
 ![Landing Page Screenshot](screenshots/landing.png)
 2. DASHBOARD PAGE 
+---
 ![Dashboard Screenshot](screenshots/dashboard.png)
 3. FEATURES PAGE 
+---
 ![Dashboard Screenshot](screenshots/features.png)
 4. PRICING PLANS 
+---
 ![Pricing Screenshot](screenshots/pricing.png)
 ## Tech Stack
 
@@ -119,14 +123,6 @@ npm install
 - Set all environment variables in your deployment dashboard.
 - Update CORS and API URLs for production.
 
----
-
-## Screenshots
-
-_Add your screenshots to a `/screenshots` folder and reference them above._
 
 ---
 
-## License
-
-MIT
