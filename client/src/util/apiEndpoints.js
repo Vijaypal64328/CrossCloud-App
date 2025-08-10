@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'https://crosscloud-app-backend.onrender.com';
 
 export const apiEndpoints = {
     FETCH_FILES: `${BASE_URL}/files/my`,
