@@ -7,17 +7,17 @@ CrossCloud is a modern, secure file sharing and storage platform. Users can uplo
 ---
 Here is the images of UI
 1. LANDING PAGE
----
 ![Landing Page Screenshot](screenshots/landing.png)
-2. DASHBOARD PAGE 
 ---
+3. DASHBOARD PAGE 
 ![Dashboard Screenshot](screenshots/dashboard.png)
-3. FEATURES PAGE 
 ---
+5. FEATURES PAGE 
 ![Dashboard Screenshot](screenshots/features.png)
-4. PRICING PLANS 
 ---
+7. PRICING PLANS 
 ![Pricing Screenshot](screenshots/pricing.png)
+---
 ## Tech Stack
 
 - **Frontend:** React (Vite), Tailwind CSS, Axios
