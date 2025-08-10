@@ -29,6 +29,13 @@ yarn-error.log
 *.sln
 *.sw?
 
+# Exclude insperation folder and unnecessary files
+insperation folder/
+*.pdf
+*.md
+deploy.sh
+render.yaml
+
 # Build outputs
 /dist/
 /build/
