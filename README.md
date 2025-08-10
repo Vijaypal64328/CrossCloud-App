@@ -2,6 +2,7 @@
 
 ![Landing Page Screenshot](screenshots/landing.png)
 ![Dashboard Screenshot](screenshots/dashboard.png)
+![Dashboard Screenshot](screenshots/features.png)
 ![Pricing Screenshot](screenshots/pricing.png)
 
 ## Overview
