@@ -1,8 +1,12 @@
 # CrossCloud – Secure File Sharing & Storage
-
+Here is the images of UI
+1. LANDING PAGE
 ![Landing Page Screenshot](screenshots/landing.png)
+2. DASHBOARD PAGE 
 ![Dashboard Screenshot](screenshots/dashboard.png)
+3. FEATURES PAGE 
 ![Dashboard Screenshot](screenshots/features.png)
+4. PRICING PLANS 
 ![Pricing Screenshot](screenshots/pricing.png)
 
 ## Overview
