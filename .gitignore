@@ -1,0 +1,59 @@
+# OS Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Editor files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build outputs
+/dist/
+/build/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+.tmp/
+.temp/
+
+# Deploy configs
+.netlify/
+.vercel/
+.github/
+
+# Local development files
+*.local
+
+# Dependency lock files
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Do not ignore sample/example files
+!*.example

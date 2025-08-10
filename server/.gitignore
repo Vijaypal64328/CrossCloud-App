@@ -1,6 +1,54 @@
+# Dependencies
 node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.render
+# Allow example files
+# .env.example
+
+# Upload directories and user content
 uploads/
+/uploads/
+public/uploads/
+/public/uploads/
+tmp/
+/tmp/
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
 .DS_Store
-/uploads
+
+# Testing
+/coverage
+/.nyc_output
+
+# Misc
+.npm
+.eslintcache
+.node_repl_history
