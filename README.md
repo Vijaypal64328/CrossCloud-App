@@ -1,4 +1,10 @@
 # CrossCloud – Secure File Sharing & Storage
+
+## Overview
+
+CrossCloud is a modern, secure file sharing and storage platform. Users can upload, manage, and share files, purchase credits, and view their transaction history. The app features a beautiful UI, robust authentication, and seamless payment integration.
+
+---
 Here is the images of UI
 1. LANDING PAGE
 ![Landing Page Screenshot](screenshots/landing.png)
@@ -8,13 +14,6 @@ Here is the images of UI
 ![Dashboard Screenshot](screenshots/features.png)
 4. PRICING PLANS 
 ![Pricing Screenshot](screenshots/pricing.png)
-
-## Overview
-
-CrossCloud is a modern, secure file sharing and storage platform. Users can upload, manage, and share files, purchase credits, and view their transaction history. The app features a beautiful UI, robust authentication, and seamless payment integration.
-
----
-
 ## Tech Stack
 
 - **Frontend:** React (Vite), Tailwind CSS, Axios
