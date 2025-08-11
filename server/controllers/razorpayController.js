@@ -3,7 +3,7 @@ import "../configEnv.js";
 
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import PaymentTransaction from "../models/PaymentTransation.js";
+import PaymentTransaction from "../models/PaymentTransaction.js";
 import UserCredits from "../models/UserCredits.js";
 
 // Debug: Log Razorpay keys to verify environment variable loading

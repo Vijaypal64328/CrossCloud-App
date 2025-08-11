@@ -32,7 +32,10 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/files", fileRoutes);
 app.use("/users", creditsRoutes);
 app.use("/webhooks", webhookRoutes);
+
+import transactionRoutes from "./routes/transactionRoutes.js";
 app.use("/payments", paymentRoutes);
+app.use("/transactions", transactionRoutes);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
