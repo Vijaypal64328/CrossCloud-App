@@ -1,5 +1,5 @@
 import {useContext, useEffect, useState} from "react";
-import {Menu, Share2, Wallet, X} from "lucide-react";
+import {Menu, Wallet, X} from "lucide-react";
 import {Link} from "react-router-dom";
 import {SignedIn, UserButton} from "@clerk/clerk-react";
 import SideMenu from "./SideMenu.jsx";
@@ -30,7 +30,7 @@ const Navbar = ({activeMenu}) => {
                 </button>
 
                 <div className="flex items-center gap-2">
-                    <Share2 className="text-blue-500" />
+                    <img src="/cloud.png" alt="Cloud Logo" className="w-8 h-8" />
                     <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 tracking-tight" style={{letterSpacing:'-1px'}}>
                        CrossCloud
                     </span>
