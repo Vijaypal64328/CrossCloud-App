@@ -18,6 +18,12 @@ Here is the images of UI
 7. PRICING PLANS 
 ![Pricing Screenshot](screenshots/pricing.png)
 ---
+### Mobile Screenshots (Responsive to all devices)
+<img src="screenshots/mobile-landing.jpg" width="200" style="border-radius: 12px;"> &nbsp;&nbsp;&nbsp; 
+<img src="screenshots/mobile-dashboard.jpg" width="200" style="border-radius: 12px;">
+
+
+---
 ## Tech Stack
 
 - **Frontend:** React (Vite), Tailwind CSS, Axios
