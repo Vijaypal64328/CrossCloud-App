@@ -20,10 +20,13 @@ Here is the images of UI
 ---
 ### Mobile Screenshots (Responsive to all devices)
 
+### Mobile Screenshots (Responsive to all devices)
+
 <p align="center">
-  <img src="screenshots/mobile-landing.jpg" width="48%" height=50% alt="Mobile landing page screenshot">
-  <img src="screenshots/mobile-dashboard.jpg" width="48%" height=50% alt="Mobile dashboard screenshot">
+  <img src="screenshots/mobile-landing.jpg" style="width: 35%; height: auto; margin-right: 3%;" alt="Mobile landing page screenshot">
+  <img src="screenshots/mobile-dashboard.jpg" style="width: 35%; height: auto; margin-left: 3%;" alt="Mobile dashboard screenshot">
 </p>
+
 
 ---
 ## Tech Stack
