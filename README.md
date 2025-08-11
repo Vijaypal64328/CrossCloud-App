@@ -18,9 +18,14 @@ Here is the images of UI
 7. PRICING PLANS 
 ![Pricing Screenshot](screenshots/pricing.png)
 ---
- Responsive to all devices 
- ![mobile-landing Screenshot](screenshots/mobile-landing.jpg) , ![mobile-dashboard Screenshot](screenshots/mobile-dashboard.jpg)
- 
+### Mobile Screenshots (Responsive to all devices)
+
+<p align="center">
+  <img src="screenshots/mobile-landing.jpg" width="48%" alt="Mobile landing page screenshot">
+  <img src="screenshots/mobile-dashboard.jpg" width="48%" alt="Mobile dashboard screenshot">
+</p>
+
+---
 ## Tech Stack
 
 - **Frontend:** React (Vite), Tailwind CSS, Axios
