@@ -19,10 +19,9 @@ Here is the images of UI
 ![Pricing Screenshot](screenshots/pricing.png)
 ---
 ### Mobile Screenshots (Responsive to all devices)
-<p style="display: flex; justify-content: center; gap: 30px; align-items: center;">
-  <img src="screenshots/mobile-landing.jpg" style="width: 35%; transform: scale(0.7); border-radius: 12px;" alt="Mobile landing page screenshot">
-  <img src="screenshots/mobile-dashboard.jpg" style="width: 35%; transform: scale(0.7); border-radius: 12px;" alt="Mobile dashboard screenshot">
-</p>
+<img src="screenshots/mobile-landing.jpg" width="200" style="border-radius: 12px;"> &nbsp;&nbsp;&nbsp; 
+<img src="screenshots/mobile-dashboard.jpg" width="200" style="border-radius: 12px;">
+
 
 ---
 ## Tech Stack
