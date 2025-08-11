@@ -25,7 +25,8 @@
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "mongoose": "^8.17.1",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

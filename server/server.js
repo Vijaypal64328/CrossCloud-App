@@ -1,13 +1,13 @@
+import "./configEnv.js";
 import express from "express";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
 
 import fileRoutes from "./routes/fileRoutes.js";
 import creditsRoutes from "./routes/creditsRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
-dotenv.config();
 const app = express();
 app.use(cors({
   origin: [
@@ -32,6 +32,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/files", fileRoutes);
 app.use("/users", creditsRoutes);
 app.use("/webhooks", webhookRoutes);
+app.use("/payments", paymentRoutes);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);

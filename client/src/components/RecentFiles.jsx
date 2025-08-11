@@ -61,7 +61,7 @@ const RecentFiles = ({ files }) => {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                     {files.map((file) => (
-                        <tr key={file.id} className="hover:bg-gray-50">
+                        <tr key={file._id || file.id || idx} className="hover:bg-gray-50">
                             <td className="px-4 py-3 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
                                     {getFileIcon(file.name)}

@@ -1,3 +1,7 @@
+# Ignore extra markdown files except main documentation
+!PROJECT_DOCUMENTATION.md
+*.md
+!README.md
 # OS Files
 .DS_Store
 Thumbs.db
@@ -15,6 +19,10 @@ yarn-error.log
 .env
 .env.*
 !.env.example
+server/.env
+server/.env.*
+client/.env
+client/.env.*
 
 # Editor files
 .vscode/*
@@ -30,8 +38,17 @@ yarn-error.log
 *.sw?
 
 # Build outputs
-/dist/
-/build/
+dist/
+build/
+
+# Uploaded files
+uploads/
+
+# Coverage
+coverage/
+
+# Test scripts
+server/test-razorpay.js
 
 # Logs
 logs/

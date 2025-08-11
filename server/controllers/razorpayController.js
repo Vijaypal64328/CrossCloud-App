@@ -1,16 +1,45 @@
+
+import "../configEnv.js";
+
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import PaymentTransaction from "../models/PaymentTransation.js";
 import UserCredits from "../models/UserCredits.js";
 
+// Debug: Log Razorpay keys to verify environment variable loading
+console.log("[DEBUG] RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
+console.log("[DEBUG] RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
+
+// Debug: Log Razorpay keys right before instance creation
+console.log("[DEBUG][Controller] RAZORPAY_KEY_ID:", process.env.RAZORPAY_KEY_ID);
+console.log("[DEBUG][Controller] RAZORPAY_KEY_SECRET:", process.env.RAZORPAY_KEY_SECRET);
 // Use environment variables for keys (set dummy for now)
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_dummykey",
     key_secret: process.env.RAZORPAY_KEY_SECRET || "dummysecret"
 });
 
+// export const createOrder = async (req, res) => {
+//     try {
+//         const { amount, currency, planId, credits } = req.body;
+//         if (!amount || !currency) {
+//             return res.status(400).json({ error: "Amount and currency are required" });
+//         }
+//         const options = {
+//             amount: amount, // in paise
+//             currency,
+//             receipt: `rcpt_${Date.now()}`,
+//             payment_capture: 1
+//         };
+//         const order = await razorpay.orders.create(options);
+//         res.json({ orderId: order.id });
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// };
 export const createOrder = async (req, res) => {
     try {
+        console.log("[createOrder] req.body:", req.body); // Add this line
         const { amount, currency, planId, credits } = req.body;
         if (!amount || !currency) {
             return res.status(400).json({ error: "Amount and currency are required" });
@@ -24,6 +53,7 @@ export const createOrder = async (req, res) => {
         const order = await razorpay.orders.create(options);
         res.json({ orderId: order.id });
     } catch (err) {
+        console.error("Razorpay createOrder error:", err); // Add this line
         res.status(500).json({ error: err.message });
     }
 };
