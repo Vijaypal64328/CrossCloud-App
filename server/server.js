@@ -9,21 +9,17 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 
 const app = express();
-const url = `https://crosscloud-app-frontend.onrender.com/my-files`;
-const interval = 30000;
+const url = `https://crosscloud-app-backend.onrender.com`;
 
-function reloadWebsite() {
-  axios
-    .get(url)
-    .then((response) => {
-      console.log("website reloded");
-    })
-    .catch((error) => {
-      console.error(`Error : ${error.message}`);
-    });
+const interval = 300000; // 5 minutes in milliseconds
+
+function keepAlive() {
+  axios.get(url)
+    .then(() => console.log("Backend pinged to stay awake"))
+    .catch((err) => console.error("Ping failed:", err.message));
 }
 
-setInterval(reloadWebsite, interval);
+setInterval(keepAlive, interval);
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
