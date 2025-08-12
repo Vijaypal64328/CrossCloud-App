@@ -3,6 +3,9 @@ import fs from "fs";
 import FileMetadata from "../models/FileMetadata.js";
 import UserCredits from "../models/UserCredits.js";
 
+// Helper to get uploads directory
+const getUploadsDir = () => path.join(process.cwd(), "server", "uploads");
+
 // Upload multiple files
 export const uploadFiles = async (req, res) => {
   try {
@@ -31,8 +34,9 @@ export const uploadFiles = async (req, res) => {
     const savedFiles = [];
 
     for (let file of files) {
+      // Store only the filename, not the full path
       const fileData = await FileMetadata.create({
-        fileLocation: file.path,
+        fileLocation: file.filename, // only filename
         name: file.originalname,
         size: file.size,
         type: file.mimetype,
@@ -88,7 +92,12 @@ export const downloadFile = async (req, res) => {
     if (!file) {
       return res.status(404).json({ error: "File not found" });
     }
-    res.download(path.resolve(file.fileLocation), file.name);
+    const uploadsDir = getUploadsDir();
+    const filePath = path.join(uploadsDir, file.fileLocation);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found on server" });
+    }
+    res.download(filePath, file.name);
   } catch (err) {
     res.status(500).json({ error: "Error downloading file" });
   }
@@ -102,7 +111,11 @@ export const deleteFile = async (req, res) => {
     if (!file || file.clerkId !== clerkId) {
       return res.status(403).json({ error: "Not authorized" });
     }
-    fs.unlinkSync(file.fileLocation);
+    const uploadsDir = getUploadsDir();
+    const filePath = path.join(uploadsDir, file.fileLocation);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
     await file.deleteOne();
     res.sendStatus(204);
   } catch (err) {

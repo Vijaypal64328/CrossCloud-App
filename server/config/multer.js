@@ -2,10 +2,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-// Ensure uploads folder exists
-const uploadDir = path.join(process.cwd(), "uploads");
+// Ensure uploads folder exists in server/uploads
+const uploadDir = path.join(process.cwd(), "server", "uploads");
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Multer storage config
