@@ -45,19 +45,33 @@ export async function createMulterStorage(multer) {
     GridFsStorage = m.GridFsStorage || m.default;
     const url = process.env.MONGO_URI;
     if (!url) throw new Error("Missing MONGO_URI for GridFS storage");
-    const storage = new GridFsStorage({
-      url,
-      file: (req, file) => {
-        const ext = path.extname(file.originalname);
-        const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-        return {
-          filename,
-          bucketName: process.env.GRIDFS_BUCKET || "uploads",
-          metadata: { originalname: file.originalname, mimetype: file.mimetype },
-        };
-      },
+
+    // Use a promise to ensure the connection is ready
+    return new Promise((resolve, reject) => {
+      const storage = new GridFsStorage({
+        url,
+        file: (req, file) => {
+          return new Promise((resolveFile, rejectFile) => {
+            const ext = path.extname(file.originalname);
+            const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+            const fileInfo = {
+              filename,
+              bucketName: process.env.GRIDFS_BUCKET || "uploads",
+              metadata: { originalname: file.originalname, mimetype: file.mimetype },
+            };
+            resolveFile(fileInfo);
+          });
+        },
+      });
+
+      storage.on("connection", (db) => {
+        resolve(storage);
+      });
+
+      storage.on("error", (err) => {
+        reject(err);
+      });
     });
-    return storage;
   }
   return local.createMulterStorage(multer);
 }
