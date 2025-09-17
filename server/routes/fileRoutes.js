@@ -6,6 +6,7 @@ import {
   getMyFiles,
   getPublicFile,
   downloadFile,
+  getFileRaw,
   deleteFile,
   togglePublic
 } from "../controllers/fileController.js";
@@ -17,6 +18,8 @@ router.post("/upload", requireAuth, upload.array("files", 10), uploadFiles);
 router.get("/my", requireAuth, getMyFiles);
 router.get("/public/:id", getPublicFile);
 router.get("/download/:id", downloadFile);
+// Raw public preview (only for public files)
+router.get("/raw/:id", getFileRaw);
 router.delete("/:id", requireAuth, deleteFile);
 router.patch("/:id/toggle-public", requireAuth, togglePublic);
 

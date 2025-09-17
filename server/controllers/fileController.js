@@ -6,6 +6,18 @@ import UserCredits from "../models/UserCredits.js";
 // Helper to get uploads directory
 const getUploadsDir = () => path.join(process.cwd(), "server", "uploads");
 
+// Resolve the absolute file path from stored metadata, supporting legacy absolute paths
+const resolveFilePath = (file) => {
+  const uploadsDir = getUploadsDir();
+  const stored = file.fileLocation;
+  // If an absolute path is stored and exists, use it (legacy records)
+  if (stored && path.isAbsolute(stored) && fs.existsSync(stored)) {
+    return stored;
+  }
+  // Otherwise treat it as a filename under uploads dir
+  return path.join(uploadsDir, stored);
+};
+
 // Upload multiple files
 export const uploadFiles = async (req, res) => {
   try {
@@ -92,14 +104,40 @@ export const downloadFile = async (req, res) => {
     if (!file) {
       return res.status(404).json({ error: "File not found" });
     }
-    const uploadsDir = getUploadsDir();
-    const filePath = path.join(uploadsDir, file.fileLocation);
+    const filePath = resolveFilePath(file);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: "File not found on server" });
     }
     res.download(filePath, file.name);
   } catch (err) {
     res.status(500).json({ error: "Error downloading file" });
+  }
+};
+
+// Stream a file for inline viewing (images, pdf, audio, video)
+export const getFileRaw = async (req, res) => {
+  try {
+    const file = await FileMetadata.findById(req.params.id);
+    if (!file) return res.status(404).json({ error: "File not found" });
+
+    // Only allow if public or owner (optional: if you later add owner view)
+    // For now, PublicFileView only links public files.
+    if (!file.isPublic) return res.status(403).json({ error: "Not authorized" });
+
+    const filePath = resolveFilePath(file);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found on server" });
+    }
+    // Set content type from metadata if available
+    if (file.type) res.setHeader("Content-Type", file.type);
+    // Inline disposition so browser can preview
+    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+
+    const stream = fs.createReadStream(filePath);
+    stream.on("error", () => res.status(500).end());
+    stream.pipe(res);
+  } catch (err) {
+    res.status(500).json({ error: "Error streaming file" });
   }
 };
 

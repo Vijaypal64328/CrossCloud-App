@@ -142,6 +142,26 @@ const PublicFileView = () => {
               </span>
                         </div>
 
+                        {/* Preview area for common types */}
+                        <div className="my-8">
+                            {/^image\//.test(file.type) && (
+                                <img src={apiEndpoints.RAW_FILE(fileId)} alt={file.name} className="mx-auto max-h-[480px] rounded border" />
+                            )}
+                            {/^video\//.test(file.type) && (
+                                <video controls className="mx-auto max-h-[480px] rounded border">
+                                    <source src={apiEndpoints.RAW_FILE(fileId)} type={file.type} />
+                                </video>
+                            )}
+                            {/^audio\//.test(file.type) && (
+                                <audio controls className="w-full">
+                                    <source src={apiEndpoints.RAW_FILE(fileId)} type={file.type} />
+                                </audio>
+                            )}
+                            {file.type === 'application/pdf' && (
+                                <iframe title="pdf-preview" className="w-full h-[600px] border rounded" src={apiEndpoints.RAW_FILE(fileId)} />
+                            )}
+                        </div>
+
                         <div className="flex justify-center gap-4 my-8">
                             <button
                                 onClick={handleDownload}
