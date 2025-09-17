@@ -1,29 +1,28 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { createMulterStorage } from "./storage.js";
 
-// Ensure uploads folder exists in server/uploads
-const uploadDir = path.join(process.cwd(), "server", "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+const FIVE_GB = 5 * 1024 * 1024 * 1024;
+
+let multerInstance;
+
+async function getUpload() {
+  if (!multerInstance) {
+    const storage = await createMulterStorage(multer);
+    multerInstance = multer({ storage, limits: { fileSize: FIVE_GB } });
+  }
+  return multerInstance;
 }
 
-// Multer storage config
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
+// Export a middleware-like wrapper that resolves to the actual multer instance
+const upload = {
+  array: (fieldName, maxCount) => async (req, res, next) => {
+    try {
+      const m = await getUpload();
+      return m.array(fieldName, maxCount)(req, res, next);
+    } catch (err) {
+      next(err);
+    }
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
-});
-
-// 5GB per file limit (local)
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5GB
-});
+};
 
 export default upload;

@@ -22,6 +22,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "multer-gridfs-storage": "^5.0.2",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "mongoose": "^8.17.1",

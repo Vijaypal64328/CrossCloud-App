@@ -2,20 +2,15 @@ import path from "path";
 import fs from "fs";
 import FileMetadata from "../models/FileMetadata.js";
 import UserCredits from "../models/UserCredits.js";
+import { deleteFileFromStorage, resolveLocalPath } from "../config/storage.js";
+import jwt from "jsonwebtoken";
 
 // Helper to get uploads directory
 const getUploadsDir = () => path.join(process.cwd(), "server", "uploads");
 
 // Resolve the absolute file path from stored metadata, supporting legacy absolute paths
 const resolveFilePath = (file) => {
-  const uploadsDir = getUploadsDir();
-  const stored = file.fileLocation;
-  // If an absolute path is stored and exists, use it (legacy records)
-  if (stored && path.isAbsolute(stored) && fs.existsSync(stored)) {
-    return stored;
-  }
-  // Otherwise treat it as a filename under uploads dir
-  return path.join(uploadsDir, stored);
+  return resolveLocalPath(file);
 };
 
 // Upload multiple files
@@ -47,15 +42,21 @@ export const uploadFiles = async (req, res) => {
 
     for (let file of files) {
       // Store only the filename, not the full path
-      const fileData = await FileMetadata.create({
-        fileLocation: file.filename, // only filename
+      const storage = (process.env.STORAGE_DRIVER || "local").toLowerCase();
+      const doc = {
+        fileLocation: file.filename || file.key, // local filename | gridfs filename
         name: file.originalname,
         size: file.size,
         type: file.mimetype,
         clerkId,
+        ownerEmail: req.user?.email || req.user?.primary_email || req.user?.primaryEmail,
+        storage,
+        gridFsBucket: storage === "gridfs" ? (process.env.GRIDFS_BUCKET || "uploads") : undefined,
+        gridFsId: storage === "gridfs" ? (file.id?.toString?.() || file.id || file._id?.toString?.()) : undefined,
         isPublic: false,
         uploadedAt: new Date(),
-      });
+      };
+      const fileData = await FileMetadata.create(doc);
 
       savedFiles.push(fileData);
       userCredits.credits -= 1; // Deduct 1 credit per file
@@ -104,6 +105,35 @@ export const downloadFile = async (req, res) => {
     if (!file) {
       return res.status(404).json({ error: "File not found" });
     }
+    // Authorization: allow if public OR token sub matches owner
+    let isOwner = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.decode(token);
+      if (decoded?.sub && decoded.sub === file.clerkId) {
+        isOwner = true;
+      }
+    }
+    const authorized = file.isPublic || isOwner;
+    if (!authorized) return res.status(403).json({ error: "Not authorized" });
+
+    // GridFS download
+    if (file.storage === "gridfs") {
+      try {
+        const { GridFSBucket, ObjectId } = (await import("mongodb")).default || (await import("mongodb"));
+        const db = (await import("mongoose")).default.connection.db;
+        const bucket = new GridFSBucket(db, { bucketName: file.gridFsBucket || process.env.GRIDFS_BUCKET || "uploads" });
+        const id = file.gridFsId ? new ObjectId(file.gridFsId) : null;
+        const readStream = id ? bucket.openDownloadStream(id) : bucket.openDownloadStreamByName(file.fileLocation);
+        if (file.type) res.setHeader("Content-Type", file.type);
+        res.setHeader("Content-Disposition", `attachment; filename=\"${encodeURIComponent(file.name)}\"`);
+        readStream.on("error", () => res.status(404).json({ error: "File not found on server" }));
+        return readStream.pipe(res);
+      } catch (e) {
+        return res.status(500).json({ error: "Error downloading file from GridFS" });
+      }
+    }
     const filePath = resolveFilePath(file);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: "File not found on server" });
@@ -123,19 +153,75 @@ export const getFileRaw = async (req, res) => {
     // Only allow if public or owner (optional: if you later add owner view)
     // For now, PublicFileView only links public files.
     if (!file.isPublic) return res.status(403).json({ error: "Not authorized" });
-
-    const filePath = resolveFilePath(file);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: "File not found on server" });
+    // Local disk
+    if (file.storage === "local" || !file.storage) {
+      const filePath = resolveFilePath(file);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "File not found on server" });
+      }
+      if (file.type) res.setHeader("Content-Type", file.type);
+      res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+      const stream = fs.createReadStream(filePath);
+      stream.on("error", () => res.status(500).end());
+      return stream.pipe(res);
     }
-    // Set content type from metadata if available
-    if (file.type) res.setHeader("Content-Type", file.type);
-    // Inline disposition so browser can preview
-    res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+    if (file.storage === "gridfs") {
+      try {
+        const { GridFSBucket, ObjectId } = (await import("mongodb")).default || (await import("mongodb"));
+        const db = (await import("mongoose")).default.connection.db;
+        const bucket = new GridFSBucket(db, { bucketName: file.gridFsBucket || process.env.GRIDFS_BUCKET || "uploads" });
+        const id = file.gridFsId ? new ObjectId(file.gridFsId) : null;
+        const readStream = id ? bucket.openDownloadStream(id) : bucket.openDownloadStreamByName(file.fileLocation);
+        if (file.type) res.setHeader("Content-Type", file.type);
+        res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+        readStream.on("error", () => res.status(404).json({ error: "File not found on server" }));
+        return readStream.pipe(res);
+      } catch (e) {
+        return res.status(500).json({ error: "Error streaming file from GridFS" });
+      }
+    }
+  // Unknown storage
+  return res.status(400).json({ error: "Unsupported storage type" });
+  } catch (err) {
+    res.status(500).json({ error: "Error streaming file" });
+  }
+};
 
-    const stream = fs.createReadStream(filePath);
-    stream.on("error", () => res.status(500).end());
-    stream.pipe(res);
+// Stream a file for owner (authenticated) even if private
+export const getFileRawOwner = async (req, res) => {
+  try {
+    const file = await FileMetadata.findById(req.params.id);
+    if (!file) return res.status(404).json({ error: "File not found" });
+    const clerkId = req.user.sub;
+    if (file.clerkId !== clerkId) return res.status(403).json({ error: "Not authorized" });
+
+    if (file.storage === "local" || !file.storage) {
+      const filePath = resolveFilePath(file);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: "File not found on server" });
+      }
+      if (file.type) res.setHeader("Content-Type", file.type);
+      res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+      const stream = fs.createReadStream(filePath);
+      stream.on("error", () => res.status(500).end());
+      return stream.pipe(res);
+    }
+    if (file.storage === "gridfs") {
+      try {
+        const { GridFSBucket, ObjectId } = (await import("mongodb")).default || (await import("mongodb"));
+        const db = (await import("mongoose")).default.connection.db;
+        const bucket = new GridFSBucket(db, { bucketName: file.gridFsBucket || process.env.GRIDFS_BUCKET || "uploads" });
+        const id = file.gridFsId ? new ObjectId(file.gridFsId) : null;
+        const readStream = id ? bucket.openDownloadStream(id) : bucket.openDownloadStreamByName(file.fileLocation);
+        if (file.type) res.setHeader("Content-Type", file.type);
+        res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.name)}"`);
+        readStream.on("error", () => res.status(404).json({ error: "File not found on server" }));
+        return readStream.pipe(res);
+      } catch (e) {
+        return res.status(500).json({ error: "Error streaming file from GridFS" });
+      }
+    }
+  return res.status(400).json({ error: "Unsupported storage type" });
   } catch (err) {
     res.status(500).json({ error: "Error streaming file" });
   }
@@ -149,11 +235,7 @@ export const deleteFile = async (req, res) => {
     if (!file || file.clerkId !== clerkId) {
       return res.status(403).json({ error: "Not authorized" });
     }
-    const uploadsDir = getUploadsDir();
-    const filePath = path.join(uploadsDir, file.fileLocation);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+  await deleteFileFromStorage(file);
     await file.deleteOne();
     res.sendStatus(204);
   } catch (err) {
@@ -167,6 +249,11 @@ export const togglePublic = async (req, res) => {
     const file = await FileMetadata.findById(req.params.id);
     if (!file) {
       return res.status(404).json({ error: "File not found" });
+    }
+    // Only owner can toggle visibility
+    const clerkId = req.user.sub;
+    if (file.clerkId !== clerkId) {
+      return res.status(403).json({ error: "Not authorized" });
     }
     file.isPublic = !file.isPublic;
     await file.save();

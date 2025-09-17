@@ -12,5 +12,6 @@ export const apiEndpoints = {
     VERIFY_PAYMENT: `${BASE_URL}/payments/verify-payment`,
     TRANSACTIONS: `${BASE_URL}/transactions`,
     PUBLIC_FILE_VIEW: (fileId) => `${BASE_URL}/files/public/${fileId}`,
-    RAW_FILE: (fileId) => `${BASE_URL}/files/raw/${fileId}`
+    RAW_FILE: (fileId) => `${BASE_URL}/files/raw/${fileId}`,
+    RAW_FILE_OWNER: (fileId) => `${BASE_URL}/files/raw/${fileId}/owner`
 }
