@@ -47,7 +47,7 @@ export const pricingPlans = [
         features: [
             "20 file uploads",
             "Basic file sharing",
-            "7-day file retention",
+            "Unlimited file retention",
             "Email support"
         ],
         cta: "Get Started",
@@ -60,7 +60,7 @@ export const pricingPlans = [
         features: [
             "500 file uploads",
             "Advanced file sharing",
-            "30-day file retention",
+            "Unlimited file retention",
             "Priority email support",
             "File analytics"
         ],
