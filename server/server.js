@@ -9,6 +9,14 @@ import creditsRoutes from "./routes/creditsRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 
+// --- START DIAGNOSTIC LOGS ---
+console.log("===================================");
+console.log("CrossCloud Server Starting Up...");
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`STORAGE_DRIVER: ${process.env.STORAGE_DRIVER}`);
+console.log("===================================");
+// --- END DIAGNOSTIC LOGS ---
+
 const app = express();
 const url = `https://crosscloud-app-backend.onrender.com`;
 
