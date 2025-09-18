@@ -52,6 +52,10 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Routes
 
+app.get("/", (req, res) => {
+  res.status(200).send("CrossCloud backend is running.");
+});
+
 app.use("/files", fileRoutes);
 app.use("/users", creditsRoutes);
 app.use("/webhooks", webhookRoutes);
