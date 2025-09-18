@@ -7,7 +7,10 @@ export const apiEndpoints = {
     TOGGLE_FILE: (id) => `${BASE_URL}/files/${id}/toggle-public`,
     DOWNLOAD_FILE: (id) => `${BASE_URL}/files/download/${id}`,
     DELETE_FILE: (id) => `${BASE_URL}/files/${id}`,
-    UPLOAD_FILE: `${BASE_URL}/files/upload`,
+    // UPLOAD_FILE: `${BASE_URL}/files/upload`, // Deprecated
+    PRESIGNED_URL_UPLOAD: `${BASE_URL}/files/upload/presigned-url`,
+    CONFIRM_UPLOAD: `${BASE_URL}/files/upload/confirm`,
+    VIEW_PRIVATE_FILE: (id) => `${BASE_URL}/files/view/${id}`,
     CREATE_ORDER: `${BASE_URL}/payments/create-order`,
     VERIFY_PAYMENT: `${BASE_URL}/payments/verify-payment`,
     TRANSACTIONS: `${BASE_URL}/transactions`,

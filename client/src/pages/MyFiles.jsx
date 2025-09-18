@@ -70,6 +70,25 @@ const MyFiles = () => {
         }
     }
 
+    const handleView = async (file) => {
+        if (file.isPublic) {
+            // If public, open the standard share page
+            window.open(`/file/${file.id}`, "_blank");
+        } else {
+            // If private, get a temporary, secure URL to view it
+            try {
+                const token = await getToken();
+                const response = await axios.get(apiEndpoints.VIEW_PRIVATE_FILE(file.id), {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                window.open(response.data.url, "_blank");
+            } catch (err) {
+                console.error("Error generating view link:", err);
+                toast.error("Could not generate a link to view the file.");
+            }
+        }
+    };
+
     const handleDownload = async (file) => {
         try {
             // With S3, the file location is a public URL.
