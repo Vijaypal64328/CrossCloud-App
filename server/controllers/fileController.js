@@ -3,15 +3,14 @@ import UserCredits from "../models/UserCredits.js";
 import {
   S3Client,
   DeleteObjectCommand,
-  PutObjectAclCommand,
-  PutObjectCommand,
   GetObjectCommand,
+  PutObjectAclCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import crypto from "crypto";
-import path from "path";
 
-// Configure S3 client
+// Configure S3 client for delete operations
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -20,48 +19,120 @@ const s3 = new S3Client({
   },
 });
 
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME;
-const randomBytes = (bytes = 16) => crypto.randomBytes(bytes).toString("hex");
+// Generate a presigned URL for direct upload
+export const getPresignedUrl = async (req, res) => {
+  const { fileName, fileType } = req.body;
+  const clerkId = req.user.sub;
 
-// 1. Generate Presigned URL for direct upload
-export const getPresignedUrlForUpload = async (req, res) => {
+  // Generate a unique key for the file in S3
+  const s3Key = `uploads/${clerkId}/${Date.now()}-${fileName}`;
+
   try {
-    const { fileName, fileType } = req.body;
-    if (!fileName || !fileType) {
-      return res.status(400).json({ error: "fileName and fileType are required" });
-    }
-
-    const key = `uploads/${randomBytes()}${path.extname(fileName)}`;
-
-    // Use PutObjectCommand to generate a presigned URL for uploading (PUT)
-    const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      ContentType: fileType,
+    const { url, fields } = await createPresignedPost(s3, {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: s3Key,
+      Conditions: [
+        ["content-length-range", 0, 52428800], // up to 50 MB
+        ["eq", "$Content-Type", fileType],
+      ],
+      Fields: {
+        "Content-Type": fileType,
+      },
+      Expires: 600, // 10 minutes
     });
 
-    const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // URL expires in 5 minutes
-
-    res.json({ url, key });
+    res.json({ url, fields, s3Key });
   } catch (err) {
-    console.error("Error generating presigned URL:", err);
-    res.status(500).json({ error: "Error generating upload URL" });
+    console.error("Error creating presigned post:", err);
+    res.status(500).json({ error: "Error creating presigned URL" });
   }
 };
 
-// 2. Confirm upload and save metadata (replaces old uploadFiles)
+// Register the file metadata after a successful direct upload
+export const registerUploadedFile = async (req, res) => {
+  const { s3Key, fileName, fileType, fileSize } = req.body;
+  const clerkId = req.user.sub;
+
+  try {
+    let userCredits = await UserCredits.findOne({ clerkId });
+    if (!userCredits || userCredits.credits < 1) {
+      return res.status(400).json({ error: "Not enough credits" });
+    }
+
+    const fileData = await FileMetadata.create({
+      fileLocation: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`, // Construct the URL
+      name: fileName,
+      size: fileSize,
+      type: fileType,
+      clerkId,
+      isPublic: false, // Private by default
+      s3Key: s3Key,
+      uploadedAt: new Date(),
+    });
+
+    userCredits.credits -= 1;
+    await userCredits.save();
+
+    res.status(201).json({ file: fileData, remainingCredits: userCredits.credits });
+  } catch (err) {
+    console.error("Error registering file:", err);
+    res.status(500).json({ error: "Error registering file" });
+  }
+};
+
+// Get a presigned URL to preview a private file
+export const getPreviewUrl = async (req, res) => {
+  try {
+    const clerkId = req.user.sub;
+    const file = await FileMetadata.findById(req.params.id);
+
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    // If public, return the direct S3 URL
+    if (file.isPublic) {
+      return res.json({ url: file.fileLocation });
+    }
+
+    // If private, only the owner can get a preview link
+    if (file.clerkId !== clerkId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    // Generate a presigned GET URL for the private file
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: file.s3Key,
+      ResponseContentDisposition: "inline", // Important for previewing in browser
+    });
+
+    const signedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // URL expires in 5 minutes
+    res.json({ url: signedUrl });
+  } catch (err) {
+    console.error("Error generating preview URL:", err);
+    res.status(500).json({ error: "Error generating preview URL" });
+  }
+};
+
+// Upload multiple files (now using S3) - THIS IS NOW DEPRECATED
+// The new flow is getPresignedUrl -> direct upload -> registerUploadedFile
 export const uploadFiles = async (req, res) => {
   try {
-    const { files } = req.body; // Array of file metadata from client
+    const files = req.files;
     const clerkId = req.user.sub;
 
     if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No files to confirm" });
+      return res.status(400).json({ error: "No files uploaded" });
     }
 
     let userCredits = await UserCredits.findOne({ clerkId });
     if (!userCredits) {
-      userCredits = await UserCredits.create({ clerkId, credits: 20, plan: "BASIC" });
+      userCredits = await UserCredits.create({
+        clerkId,
+        credits: 20,
+        plan: "BASIC",
+      });
     }
 
     if (userCredits.credits < files.length) {
@@ -69,50 +140,32 @@ export const uploadFiles = async (req, res) => {
     }
 
     const savedFiles = [];
-    for (const file of files) {
-      const fileUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.key}`;
+
+    for (let file of files) {
       const fileData = await FileMetadata.create({
-        fileLocation: fileUrl,
-        name: file.name,
+        fileLocation: file.location, // S3 URL
+        name: file.originalname,
         size: file.size,
-        type: file.type,
+        type: file.mimetype,
         clerkId,
-        isPublic: false, // Default to private
-        s3Key: file.key,
+        isPublic: true, // Files on S3 are public by default with our ACL
+        uploadedAt: new Date(),
+        s3Key: file.key, // Store the S3 key for deletion
       });
+
       savedFiles.push(fileData);
       userCredits.credits -= 1;
     }
 
     await userCredits.save();
-    res.status(201).json({ files: savedFiles, remainingCredits: userCredits.credits });
-  } catch (err) {
-    console.error("Error confirming upload:", err);
-    res.status(500).json({ error: "Error saving file metadata" });
-  }
-};
 
-// 3. Get a temporary URL to view a private file
-export const getPresignedUrlForView = async (req, res) => {
-  try {
-    const clerkId = req.user.sub;
-    const file = await FileMetadata.findById(req.params.id);
-
-    if (!file || file.clerkId !== clerkId) {
-      return res.status(403).json({ error: "Not authorized" });
-    }
-
-    const command = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: file.s3Key,
-      ResponseContentDisposition: "inline", // Tell browser to display inline
-      ResponseContentType: file.type, // Set the correct content type
+    res.json({
+      files: savedFiles,
+      remainingCredits: userCredits.credits,
     });
-
-    const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // Link expires in 5 minutes
-    res.json({ url });
   } catch (err) {
-    res.status(500).json({ error: "Error generating view link" });
+    console.error(err);
+    res.status(500).json({ error: "Error uploading files" });
   }
 };
 
@@ -120,7 +173,7 @@ export const getPresignedUrlForView = async (req, res) => {
 export const getMyFiles = async (req, res) => {
   try {
     const clerkId = req.user.sub;
-    const files = await FileMetadata.find({ clerkId }).sort({ uploadedAt: -1 });
+    const files = await FileMetadata.find({ clerkId });
     res.json(files);
   } catch (err) {
     res.status(500).json({ error: "Error fetching files" });
@@ -140,7 +193,7 @@ export const getPublicFile = async (req, res) => {
   }
 };
 
-// 4. Delete file from S3 and DB
+// Delete a file (now from S3)
 export const deleteFile = async (req, res) => {
   try {
     const clerkId = req.user.sub;
@@ -150,13 +203,16 @@ export const deleteFile = async (req, res) => {
       return res.status(403).json({ error: "Not authorized" });
     }
 
-    const command = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
+    // Delete from S3
+    const deleteParams = {
+      Bucket: process.env.AWS_BUCKET_NAME,
       Key: file.s3Key,
-    });
-    await s3.send(command);
+    };
+    await s3.send(new DeleteObjectCommand(deleteParams));
 
+    // Delete from database
     await file.deleteOne();
+
     res.sendStatus(204);
   } catch (err) {
     console.error("Error deleting file:", err);
@@ -164,25 +220,24 @@ export const deleteFile = async (req, res) => {
   }
 };
 
-// 5. Toggle public/private by changing S3 object ACL
+// Toggle public/private (ACL change on S3)
 export const togglePublic = async (req, res) => {
   try {
-    const clerkId = req.user.sub;
     const file = await FileMetadata.findById(req.params.id);
-
-    if (!file || file.clerkId !== clerkId) {
-      return res.status(403).json({ error: "Not authorized" });
+    if (!file) {
+      return res.status(404).json({ error: "File not found" });
     }
 
-    const newPublicStatus = !file.isPublic;
+    file.isPublic = !file.isPublic;
+
+    // Update the ACL on the S3 object
     const command = new PutObjectAclCommand({
-      Bucket: BUCKET_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME,
       Key: file.s3Key,
-      ACL: newPublicStatus ? "public-read" : "private",
+      ACL: file.isPublic ? "public-read" : "private",
     });
     await s3.send(command);
 
-    file.isPublic = newPublicStatus;
     await file.save();
     res.json(file);
   } catch (err) {

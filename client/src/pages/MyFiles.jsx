@@ -10,7 +10,6 @@ import {apiEndpoints} from "../util/apiEndpoints.js";
 import ConfirmationDialog from "../components/ConfirmationDialog.jsx";
 import LinkShareModal from "../components/LinkShareModal.jsx";
 import FileListRow from "../components/FileListRow.jsx";
-import { getFileIcon } from "../util/fileIcons.jsx";
 
 const MyFiles = () => {
     const [files, setFiles] = useState([]);
@@ -71,30 +70,23 @@ const MyFiles = () => {
         }
     }
 
-    const handleView = async (file) => {
-        if (file.isPublic) {
-            // If public, open the standard share page
-            window.open(`/file/${file.id}`, "_blank");
-        } else {
-            // If private, get a temporary, secure URL to view it
-            try {
-                const token = await getToken();
-                const response = await axios.get(apiEndpoints.VIEW_PRIVATE_FILE(file.id), {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                window.open(response.data.url, "_blank");
-            } catch (err) {
-                console.error("Error generating view link:", err);
-                toast.error("Could not generate a link to view the file.");
-            }
+    const handlePreview = async (file) => {
+        try {
+            const token = await getToken();
+            const response = await axios.get(apiEndpoints.GET_PREVIEW_URL(file._id), {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            window.open(response.data.url, "_blank");
+        } catch (err) {
+            console.error("Error getting preview URL:", err);
+            toast.error("Could not open file preview.");
         }
     };
 
     const handleDownload = async (file) => {
         try {
-            // With S3, the file location is a public URL.
-            // We can open it in a new tab to trigger a download or view.
-            window.open(file.fileLocation, "_blank");
+            // For both public and private files, get a temporary URL to view/download
+            await handlePreview(file);
         } catch (err) {
             console.error("Download failed:", err);
             toast.error("Sorry, the file could not be downloaded.");
@@ -160,7 +152,27 @@ const MyFiles = () => {
         fetchFiles();
     }, [getToken]);
 
-    // file icon helper moved to client/src/util/fileIcons.js
+    const getFileIcon = (file) => {
+        const extenstion = file.name.split('.').pop().toLowerCase();
+
+        if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extenstion)) {
+            return <Image size={24} className="text-purple-500" />
+        }
+
+        if (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(extenstion)) {
+            return <Video size={24} className="text-blue-500" />
+        }
+
+        if (['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(extenstion)) {
+            return <Music size={24} className="text-green-500" />
+        }
+
+        if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extenstion)) {
+            return <FileText size={24} className="text-amber-500" />
+        }
+
+        return <FileIcon size={24} className="text-purple-500" />
+    }
 
     return (
         <DashboardLayout activeMenu="My Files">
@@ -246,6 +258,7 @@ const MyFiles = () => {
                                         onDelete={openDeleteConfirmation}
                                         onTogglePublic={togglePublic}
                                         onShareLink={openShareModal}
+                                        getFileIcon={getFileIcon}
                                     />
                                 ))}
                             </tbody>
