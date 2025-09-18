@@ -7,6 +7,8 @@ import {apiEndpoints} from "../util/apiEndpoints.js";
 import {Loader2} from "lucide-react";
 import DashboardUpload from "../components/DashboardUpload.jsx";
 import RecentFiles from "../components/RecentFiles.jsx";
+import {useNavigate} from "react-router-dom";
+import {toast} from "react-hot-toast";
 
 const Dashboard = () => {
     const [files, setFiles] = useState([]);
@@ -18,6 +20,7 @@ const Dashboard = () => {
     const [remainingUploads, setRemainingUploads] = useState(5);
     const {getToken} = useAuth();
     const { fetchUserCredits } = useContext(UserCreditsContext);
+    const navigate = useNavigate();
     const MAX_FILES = 10;
 
     useEffect(() => {
@@ -82,59 +85,73 @@ const Dashboard = () => {
     // Handle file upload
     const handleUpload = async () => {
         if (uploadFiles.length === 0) {
-            setMessage('Please select at least one file to upload.');
-            setMessageType('error');
-            return;
-        }
-
-        if (uploadFiles.length > MAX_FILES) {
-            setMessage(`You can only upload a maximum of ${MAX_FILES} files at once.`);
-            setMessageType('error');
+            toast.error("Please select files to upload.");
             return;
         }
 
         setUploading(true);
-        setMessage('Uploading files...');
-        setMessageType('info');
+        const token = await getToken();
 
-        const formData = new FormData();
-        uploadFiles.forEach(file => formData.append('files', file));
+        const uploadPromises = uploadFiles.map(async (file) => {
+            try {
+                // 1. Get presigned URL
+                const presignedResponse = await axios.post(
+                    apiEndpoints.GET_PRESIGNED_URL,
+                    { fileName: file.name, fileType: file.type },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
 
-        try {
-            const token = await getToken();
-            const response = await axios.post(apiEndpoints.UPLOAD_FILE, formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+                const { url, fields, s3Key } = presignedResponse.data;
 
-            setMessage('Files uploaded successfully!');
-            setMessageType('success');
-            setUploadFiles([]);
+                // 2. Upload file to S3
+                const formData = new FormData();
+                Object.entries(fields).forEach(([key, value]) => {
+                    formData.append(key, value);
+                });
+                formData.append("file", file);
 
+                await axios.post(url, formData);
+
+                // 3. Register file with backend
+                const registerResponse = await axios.post(
+                    apiEndpoints.REGISTER_FILE,
+                    {
+                        s3Key,
+                        fileName: file.name,
+                        fileType: file.type,
+                        fileSize: file.size,
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                
+                return registerResponse.data;
+
+            } catch (err) {
+                console.error("Upload failed for file:", file.name, err);
+                toast.error(`Upload failed for ${file.name}`);
+                return null;
+            }
+        });
+
+        const results = await Promise.all(uploadPromises);
+        const successfulUploads = results.filter(r => r);
+
+        setUploading(false);
+        setUploadFiles([]); // Clear files after upload
+
+        if (successfulUploads.length > 0) {
+            await fetchUserCredits(); // Refresh credits
+            toast.success(`${successfulUploads.length} file(s) uploaded successfully!`);
+            
             // Refresh the recent files list
+            const token = await getToken();
             const res = await axios.get(apiEndpoints.FETCH_FILES, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            // Sort by uploadedAt and take only the 5 most recent files
-            const sortedFiles = res.data.sort((a, b) =>
-                new Date(b.uploadedAt) - new Date(a.uploadedAt)
-            ).slice(0, 5);
-
-            setFiles(sortedFiles);
-
-            // Refresh user credits immediately after successful upload
-            await fetchUserCredits();
-        } catch (error) {
-            console.error('Error uploading files:', error);
-            setMessage(error.response?.data?.message || 'Error uploading files. Please try again.');
-            setMessageType('error');
-        } finally {
-            setUploading(false);
+            if (Array.isArray(res.data)) {
+                const sortedFiles = res.data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)).slice(0, 5);
+                setFiles(sortedFiles);
+            }
         }
     };
 

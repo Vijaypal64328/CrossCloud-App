@@ -2,6 +2,9 @@ import { S3Client } from "@aws-sdk/client-s3";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Configure AWS S3 client
 const s3 = new S3Client({
@@ -29,4 +32,5 @@ const s3Upload = multer({
   }),
 });
 
+export { s3 };
 export default s3Upload;

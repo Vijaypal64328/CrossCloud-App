@@ -6,15 +6,18 @@ import {AlertCircle} from "lucide-react";
 import axios from "axios";
 import {apiEndpoints} from "../util/apiEndpoints.js";
 import UploadBox from "../components/UploadBox.jsx";
+import {useNavigate} from "react-router-dom";
+import {toast} from "react-hot-toast";
 
 
 const Upload = () => {
+  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); //success or error
   const {getToken} = useAuth();
-  const {credits, setCredits, fetchUserCredits} = useContext(UserCreditsContext);
+  const {credits, fetchUserCredits} = useContext(UserCreditsContext);
   const MAX_FILES = 10;
 
   const handleFileChange = (e) => {
@@ -107,14 +110,14 @@ const Upload = () => {
     const results = await Promise.all(uploadPromises);
     const successfulUploads = results.filter(r => r);
 
-    if (successfulUploads.length > 0) {
-        await fetchCredits(); // Refresh credits after successful uploads
-        toast.success(`${successfulUploads.length} file(s) uploaded successfully!`);
-    }
-    
     setIsUploading(false);
     setFiles([]); // Clear files after upload
-    navigate("/my-files");
+
+    if (successfulUploads.length > 0) {
+        await fetchUserCredits(); // Refresh credits after successful uploads
+        toast.success(`${successfulUploads.length} file(s) uploaded successfully!`);
+        navigate("/my-files");
+    }
   };
 
   const updateFileProgress = (index, progress) => {
