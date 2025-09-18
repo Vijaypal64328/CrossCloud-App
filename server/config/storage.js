@@ -50,15 +50,18 @@ export async function createMulterStorage(multer) {
     const storage = new GridFsStorage({
       db: mongoose.connection.db,
       file: (req, file) => {
-        const ext = path.extname(file.originalname);
-        const filename = `${Date.now()}-${Math.round(
-          Math.random() * 1e9
-        )}${ext}`;
-        return {
-          filename,
-          bucketName: process.env.GRIDFS_BUCKET || "uploads",
-          metadata: { originalname: file.originalname, mimetype: file.mimetype },
-        };
+        return new Promise((resolve, reject) => {
+          const ext = path.extname(file.originalname);
+          const filename = `${Date.now()}-${Math.round(
+            Math.random() * 1e9
+          )}${ext}`;
+          const fileInfo = {
+            filename,
+            bucketName: process.env.GRIDFS_BUCKET || "uploads",
+            metadata: { originalname: file.originalname, mimetype: file.mimetype },
+          };
+          resolve(fileInfo);
+        });
       },
     });
     return storage;
