@@ -70,24 +70,14 @@ const MyFiles = () => {
         }
     }
 
-    //Handle file download
     const handleDownload = async (file) => {
         try {
-            const token = await getToken();
-            const response = await axios.get(apiEndpoints.DOWNLOAD_FILE(file.id), {headers: {Authorization: `Bearer ${token}`}, responseType: 'blob'});
-
-            // create a blob url and trigger download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = url;
-            link.setAttribute("download", file.name);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url); // clean up the object url
-        }catch (error) {
-            console.error('Download failed', error);
-            toast.error('Error downloading file', error.message);
+            // With S3, the file location is a public URL.
+            // We can open it in a new tab to trigger a download or view.
+            window.open(file.fileLocation, "_blank");
+        } catch (err) {
+            console.error("Download failed:", err);
+            toast.error("Sorry, the file could not be downloaded.");
         }
     }
 

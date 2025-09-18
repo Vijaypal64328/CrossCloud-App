@@ -17,7 +17,9 @@
   "author": "Vijaypal",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.891.0",
     "@clerk/clerk-sdk-node": "^4.13.23",
+    "axios": "^1.7.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -26,8 +28,8 @@
     "jwks-rsa": "^3.2.0",
     "mongoose": "^8.17.1",
     "multer": "^2.0.2",
-    "razorpay": "^2.9.6",
-    "axios": "^1.7.2"
+    "multer-s3": "^3.0.1",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
