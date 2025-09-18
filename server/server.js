@@ -64,6 +64,13 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 app.use("/payments", paymentRoutes);
 app.use("/transactions", transactionRoutes);
 
+// Global error handler - MUST be the last middleware
+app.use((err, req, res, next) => {
+  console.error("--- UNHANDLED ERROR ---");
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 app.listen(process.env.PORT || 5000, () => {
   console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
 });
