@@ -10,6 +10,7 @@ import {apiEndpoints} from "../util/apiEndpoints.js";
 import ConfirmationDialog from "../components/ConfirmationDialog.jsx";
 import LinkShareModal from "../components/LinkShareModal.jsx";
 import FileListRow from "../components/FileListRow.jsx";
+import { getFileIcon } from "../util/fileIcons.jsx";
 
 const MyFiles = () => {
     const [files, setFiles] = useState([]);
@@ -159,27 +160,7 @@ const MyFiles = () => {
         fetchFiles();
     }, [getToken]);
 
-    const getFileIcon = (file) => {
-        const extenstion = file.name.split('.').pop().toLowerCase();
-
-        if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extenstion)) {
-            return <Image size={24} className="text-purple-500" />
-        }
-
-        if (['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(extenstion)) {
-            return <Video size={24} className="text-blue-500" />
-        }
-
-        if (['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(extenstion)) {
-            return <Music size={24} className="text-green-500" />
-        }
-
-        if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extenstion)) {
-            return <FileText size={24} className="text-amber-500" />
-        }
-
-        return <FileIcon size={24} className="text-purple-500" />
-    }
+    // file icon helper moved to client/src/util/fileIcons.js
 
     return (
         <DashboardLayout activeMenu="My Files">
@@ -265,7 +246,6 @@ const MyFiles = () => {
                                         onDelete={openDeleteConfirmation}
                                         onTogglePublic={togglePublic}
                                         onShareLink={openShareModal}
-                                        getFileIcon={getFileIcon}
                                     />
                                 ))}
                             </tbody>

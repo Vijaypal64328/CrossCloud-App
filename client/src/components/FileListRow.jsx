@@ -6,6 +6,7 @@ import {
     Lock,
     Trash2
 } from "lucide-react";
+import { getFileIcon } from "../util/fileIcons.jsx";
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
 
@@ -24,7 +25,7 @@ const FileListRow = ({
         <tr key={file.id} className="hover:bg-gray-50 transition-colors">
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
                 <div className="flex items-center gap-2">
-                    {getFileIcon(file)}
+                    {getFileIcon(file.name)}
                     {file.name}
                 </div>
             </td>
