@@ -1,4 +1,5 @@
 import path from "path";
+import { fileURLToPath } from "url";
 import fs from "fs";
 let GridFsStorage; // multer-gridfs-storage class
 import mongoose from "mongoose";
@@ -8,7 +9,11 @@ const STORAGE_DRIVER = process.env.STORAGE_DRIVER || "local"; // 'local' | 'grid
 // Local helpers
 const local = {
   getUploadsDir() {
-    const dir = path.join(process.cwd(), "server", "uploads");
+    // Use import.meta.url for a reliable path relative to the current file.
+    // This is more robust than process.cwd().
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    // Go up from /config to /server, then specify the /uploads directory.
+    const dir = path.join(__dirname, "..", "uploads");
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     return dir;
   },
