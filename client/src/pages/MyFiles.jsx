@@ -70,26 +70,23 @@ const MyFiles = () => {
         }
     }
 
-    const handlePreview = async (file) => {
-        try {
-            const token = await getToken();
-            const response = await axios.get(apiEndpoints.GET_PREVIEW_URL(file._id), {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            window.open(response.data.url, "_blank");
-        } catch (err) {
-            console.error("Error getting preview URL:", err);
-            toast.error("Could not open file preview.");
-        }
-    };
-
+    //Handle file download
     const handleDownload = async (file) => {
         try {
-            // For both public and private files, get a temporary URL to view/download
-            await handlePreview(file);
-        } catch (err) {
-            console.error("Download failed:", err);
-            toast.error("Sorry, the file could not be downloaded.");
+            const token = await getToken();
+            // Request a presigned URL from the backend
+            const response = await axios.get(apiEndpoints.DOWNLOAD_FILE(file.id), {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const { downloadUrl } = response.data;
+
+            // Redirect the browser to the presigned URL to trigger the download
+            window.location.href = downloadUrl;
+
+        } catch (error) {
+            console.error('Download failed', error);
+            toast.error('Error downloading file: ' + (error.response?.data?.error || error.message));
         }
     }
 
@@ -173,6 +170,15 @@ const MyFiles = () => {
 
         return <FileIcon size={24} className="text-purple-500" />
     }
+
+    // Handle file view
+    const handleView = (file) => {
+        if (file.isPublic) {
+            window.open(`/file/${file.id}`, "_blank");
+        } else {
+            toast.error("Private files cannot be viewed directly. Make file public to share and see the file.");
+        }
+    };
 
     return (
         <DashboardLayout activeMenu="My Files">
@@ -258,6 +264,7 @@ const MyFiles = () => {
                                         onDelete={openDeleteConfirmation}
                                         onTogglePublic={togglePublic}
                                         onShareLink={openShareModal}
+                                        onView={handleView} // Pass the handler
                                         getFileIcon={getFileIcon}
                                     />
                                 ))}

@@ -4,15 +4,7 @@ import {useAuth} from "@clerk/clerk-react";
 import axios from "axios";
 import {apiEndpoints} from "../util/apiEndpoints.js";
 import toast from "react-hot-toast";
-import {
-  Copy,
-  Download,
-  File,
-  Info,
-  Share2,
-  Eye,
-  Trash2,
-} from "lucide-react";
+import {Copy, Download, File, Info, Share2} from "lucide-react";
 import LinkShareModal from "../components/LinkShareModal.jsx";
 
 const PublicFileView = () => {
@@ -50,8 +42,10 @@ const PublicFileView = () => {
 
     const handleDownload = async () => {
         try {
-            // With S3, the file location is a public URL, so we can just open it
-            window.open(file.fileLocation, "_blank");
+            // Public files can be downloaded without a token
+            const response = await axios.get(apiEndpoints.DOWNLOAD_FILE(fileId));
+            const { downloadUrl } = response.data;
+            window.location.href = downloadUrl;
         } catch (err) {
             console.error("Download failed:", err);
             toast.error("Sorry, the file could not be downloaded.");
@@ -139,32 +133,24 @@ const PublicFileView = () => {
                         {/* Preview area for common types */}
                         <div className="my-8">
                             {/^image\//.test(file.type) && (
-              <img
-                src={file.fileLocation} // Use S3 URL directly
-                alt={file.name}
-                className="mx-auto max-h-[480px] rounded border"
-              />
-            )}
-            {/^video\//.test(file.type) && (
-              <video controls className="mx-auto max-h-[480px] rounded border">
-                <source src={file.fileLocation} type={file.type} />
-              </video>
-            )}
-            {/^audio\//.test(file.type) && (
-              <audio controls className="w-full">
-                <source src={file.fileLocation} type={file.type} />
-              </audio>
-            )}
-            {file.type === "application/pdf" && (
-              <iframe
-                title="pdf-preview"
-                className="w-full h-[600px] border rounded"
-                src={file.fileLocation} // Use S3 URL directly
-              />
-            )}
-          </div>
+                                <img src={apiEndpoints.RAW_FILE(fileId)} alt={file.name} className="mx-auto max-h-[480px] rounded border" />
+                            )}
+                            {/^video\//.test(file.type) && (
+                                <video controls className="mx-auto max-h-[480px] rounded border">
+                                    <source src={apiEndpoints.RAW_FILE(fileId)} type={file.type} />
+                                </video>
+                            )}
+                            {/^audio\//.test(file.type) && (
+                                <audio controls className="w-full">
+                                    <source src={apiEndpoints.RAW_FILE(fileId)} type={file.type} />
+                                </audio>
+                            )}
+                            {file.type === 'application/pdf' && (
+                                <iframe title="pdf-preview" className="w-full h-[600px] border rounded" src={apiEndpoints.RAW_FILE(fileId)} />
+                            )}
+                        </div>
 
-          <div className="flex justify-center gap-4 my-8">
+                        <div className="flex justify-center gap-4 my-8">
                             <button
                                 onClick={handleDownload}
                                 className="flex items-center gap-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors shadow"

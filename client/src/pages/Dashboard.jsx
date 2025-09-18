@@ -7,8 +7,6 @@ import {apiEndpoints} from "../util/apiEndpoints.js";
 import {Loader2} from "lucide-react";
 import DashboardUpload from "../components/DashboardUpload.jsx";
 import RecentFiles from "../components/RecentFiles.jsx";
-import {useNavigate} from "react-router-dom";
-import {toast} from "react-hot-toast";
 
 const Dashboard = () => {
     const [files, setFiles] = useState([]);
@@ -17,11 +15,12 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [remainingUploads, setRemainingUploads] = useState(5);
     const {getToken} = useAuth();
     const { fetchUserCredits } = useContext(UserCreditsContext);
-    const navigate = useNavigate();
     const MAX_FILES = 10;
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2GB
 
     useEffect(() => {
         const fetchRecentFiles = async () => {
@@ -57,6 +56,14 @@ const Dashboard = () => {
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
 
+        // Check for oversized files
+        const oversizedFile = selectedFiles.find(file => file.size > MAX_SIZE_BYTES);
+        if (oversizedFile) {
+            setMessage(`File "${oversizedFile.name}" exceeds the 2GB size limit. Please select a smaller file.`);
+            setMessageType('error');
+            return;
+        }
+
         // Check if adding these files would exceed the limit
         if (uploadFiles.length + selectedFiles.length > MAX_FILES) {
             setMessage(`You can only upload a maximum of ${MAX_FILES} files at once.`);
@@ -85,73 +92,66 @@ const Dashboard = () => {
     // Handle file upload
     const handleUpload = async () => {
         if (uploadFiles.length === 0) {
-            toast.error("Please select files to upload.");
+            setMessage('Please select at least one file to upload.');
+            setMessageType('error');
+            return;
+        }
+
+        if (uploadFiles.length > MAX_FILES) {
+            setMessage(`You can only upload a maximum of ${MAX_FILES} files at once.`);
+            setMessageType('error');
             return;
         }
 
         setUploading(true);
-        const token = await getToken();
+        setMessage('Uploading files...');
+        setMessageType('info');
+        setUploadProgress(0);
 
-        const uploadPromises = uploadFiles.map(async (file) => {
-            try {
-                // 1. Get presigned URL
-                const presignedResponse = await axios.post(
-                    apiEndpoints.GET_PRESIGNED_URL,
-                    { fileName: file.name, fileType: file.type },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+        const formData = new FormData();
+        uploadFiles.forEach(file => formData.append('files', file));
 
-                const { url, fields, s3Key } = presignedResponse.data;
-
-                // 2. Upload file to S3
-                const formData = new FormData();
-                Object.entries(fields).forEach(([key, value]) => {
-                    formData.append(key, value);
-                });
-                formData.append("file", file);
-
-                await axios.post(url, formData);
-
-                // 3. Register file with backend
-                const registerResponse = await axios.post(
-                    apiEndpoints.REGISTER_FILE,
-                    {
-                        s3Key,
-                        fileName: file.name,
-                        fileType: file.type,
-                        fileSize: file.size,
-                    },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-                
-                return registerResponse.data;
-
-            } catch (err) {
-                console.error("Upload failed for file:", file.name, err);
-                toast.error(`Upload failed for ${file.name}`);
-                return null;
-            }
-        });
-
-        const results = await Promise.all(uploadPromises);
-        const successfulUploads = results.filter(r => r);
-
-        setUploading(false);
-        setUploadFiles([]); // Clear files after upload
-
-        if (successfulUploads.length > 0) {
-            await fetchUserCredits(); // Refresh credits
-            toast.success(`${successfulUploads.length} file(s) uploaded successfully!`);
-            
-            // Refresh the recent files list
+        try {
             const token = await getToken();
+            await axios.post(apiEndpoints.UPLOAD_FILE, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.min(99, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+                    setUploadProgress(percentCompleted);
+                }
+            });
+
+            setUploadProgress(100);
+            setMessage('Files uploaded successfully!');
+            setMessageType('success');
+
+            // Refresh the recent files list
             const res = await axios.get(apiEndpoints.FETCH_FILES, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
             if (Array.isArray(res.data)) {
                 const sortedFiles = res.data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)).slice(0, 5);
                 setFiles(sortedFiles);
             }
+
+            await fetchUserCredits();
+
+            setTimeout(() => {
+                setUploadFiles([]);
+                setUploading(false);
+                setUploadProgress(0);
+            }, 1500);
+
+        } catch (error) {
+            console.error('Error uploading files:', error);
+            setMessage(error.response?.data?.message || 'Error uploading files. Please try again.');
+            setMessageType('error');
+            setUploading(false);
+            setUploadProgress(0);
         }
     };
 
@@ -179,6 +179,7 @@ const Dashboard = () => {
                             uploading={uploading}
                             onRemoveFile={handleRemoveFile}
                             remainingUploads={remainingUploads}
+                            uploadProgress={uploadProgress}
                         />
                     </div>
 

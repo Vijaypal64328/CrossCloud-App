@@ -1,7 +1,7 @@
 import { ArrowUpFromLine, X, FileIcon, Loader2 } from 'lucide-react';
 import { useRef } from 'react';
 
-const DashboardUpload = ({ files, onFileChange, onUpload, uploading, onRemoveFile, remainingUploads }) => {
+const DashboardUpload = ({ files, onFileChange, onUpload, uploading, onRemoveFile, remainingUploads, uploadProgress }) => {
     const fileInputRef = useRef(null);
 
     const handleDragOver = (e) => {
@@ -58,6 +58,7 @@ const DashboardUpload = ({ files, onFileChange, onUpload, uploading, onRemoveFil
                     </div>
                     <p className="text-gray-700 text-sm mb-1">Drag and drop files here</p>
                     <p className="text-gray-500 text-xs">or click to browse</p>
+                    <p className="text-gray-400 text-xs mt-1">(Max 2GB per file)</p>
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -95,6 +96,23 @@ const DashboardUpload = ({ files, onFileChange, onUpload, uploading, onRemoveFil
                                 </button>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {uploading && (
+                <div className="mt-4 w-full">
+                    <div className="flex justify-between mb-1">
+                        <span className="text-xs font-medium text-purple-700">
+                            {uploadProgress < 99 ? 'Uploading...' : 'Processing...'}
+                        </span>
+                        <span className="text-xs font-medium text-purple-700">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className="bg-purple-500 h-2 rounded-full transition-all duration-300 ease-in-out"
+                            style={{ width: `${uploadProgress}%` }}
+                        ></div>
                     </div>
                 </div>
             )}

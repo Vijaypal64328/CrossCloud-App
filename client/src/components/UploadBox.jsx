@@ -1,7 +1,7 @@
 import { ArrowUpFromLine, X, FileIcon, Loader2 } from 'lucide-react';
 import { useRef } from 'react';
 
-const UploadBox = ({ files, onFileChange, onUpload, uploading, onRemoveFile, remainingCredits, isUploadDisabled }) => {
+const UploadBox = ({ files, onFileChange, onUpload, uploading, onRemoveFile, remainingCredits, isUploadDisabled, uploadProgress, remainingUploads }) => {
     const fileInputRef = useRef(null);
 
     const handleDragOver = (e) => {
@@ -41,6 +41,9 @@ const UploadBox = ({ files, onFileChange, onUpload, uploading, onRemoveFile, rem
                 <div className="flex items-center gap-2">
                     <ArrowUpFromLine className="text-blue-600" size={20} />
                     <h2 className="text-lg font-medium">Upload Files</h2>
+                </div>
+                <div className="text-xs text-gray-500">
+                    {remainingUploads} of 10 files remaining
                 </div>
             </div>
             <div
@@ -92,6 +95,23 @@ const UploadBox = ({ files, onFileChange, onUpload, uploading, onRemoveFile, rem
                                 </button>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {uploading && (
+                <div className="mt-4 w-full">
+                    <div className="flex justify-between mb-1">
+                        <span className="text-xs font-medium text-blue-700">
+                            {uploadProgress < 99 ? 'Uploading...' : 'Processing...'}
+                        </span>
+                        <span className="text-xs font-medium text-blue-700">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                            style={{ width: `${uploadProgress}%` }}
+                        ></div>
                     </div>
                 </div>
             )}

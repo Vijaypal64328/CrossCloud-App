@@ -4,10 +4,23 @@ import {
     Eye,
     Globe,
     Lock,
-    Trash2
+    Trash2,
+    File,
+    FileText,
+    Image,
+    Video,
+    Music
 } from "lucide-react";
 import {useNavigate} from "react-router-dom";
 import {useState} from "react";
+
+const getFileIcon = (file) => {
+    if (file.type.startsWith("image/")) return <Image size={20} className="text-blue-500" />;
+    if (file.type.startsWith("video/")) return <Video size={20} className="text-red-500" />;
+    if (file.type.startsWith("audio/")) return <Music size={20} className="text-purple-500" />;
+    if (file.type === "application/pdf") return <FileText size={20} className="text-green-500" />;
+    return <File size={20} className="text-gray-500" />;
+};
 
 const FileListRow = ({
   file,
