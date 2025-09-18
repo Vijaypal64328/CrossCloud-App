@@ -45,6 +45,8 @@ export const storageDriver = STORAGE_DRIVER;
 
 export async function createMulterStorage(multer) {
   if (STORAGE_DRIVER === "gridfs") {
+    // Lazy import multer-gridfs-storage and correctly destructure the class
+    const { GridFsStorage } = await import("multer-gridfs-storage");
     const storage = new GridFsStorage({
       db: mongoose.connection.db,
       file: (req, file) => {
