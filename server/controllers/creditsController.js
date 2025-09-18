@@ -16,6 +16,7 @@ const createInitialCredits = async (clerkId) => {
  */
 export const getUserCredits = async (req, res) => {
   try {
+    console.log('DEBUG req.user:', req.user); // <-- Add this line
     const clerkId = req.user.sub; // Clerk's JWT "sub" claim
     const email = req.user.email || (req.user.email_addresses && req.user.email_addresses[0]?.email_address) || "";
     const firstName = req.user.first_name || req.user.firstName || "";

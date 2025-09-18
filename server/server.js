@@ -2,7 +2,6 @@ import "./configEnv.js";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import axios from "axios";
 
 import fileRoutes from "./routes/fileRoutes.js";
 import creditsRoutes from "./routes/creditsRoutes.js";
@@ -20,6 +19,8 @@ function keepAlive() {
     .catch((err) => console.error("Ping failed:", err.message));
 }
 
+setInterval(keepAlive, interval);
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? process.env.CLIENT_URL || "https://crosscloud-app-frontend.onrender.com"
@@ -35,10 +36,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error(err));
+
 // Routes
-app.get("/", (req, res) => {
-  res.status(200).send("CrossCloud backend is running.");
-});
 
 app.use("/files", fileRoutes);
 app.use("/users", creditsRoutes);
@@ -48,24 +51,6 @@ import transactionRoutes from "./routes/transactionRoutes.js";
 app.use("/payments", paymentRoutes);
 app.use("/transactions", transactionRoutes);
 
-// Global error handler - MUST be the last middleware
-app.use((err, req, res, next) => {
-  console.error("--- UNHANDLED ERROR ---");
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
 });
-
-// Connect to MongoDB and then start the server
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`🚀 Server running on port ${process.env.PORT || 5000}`);
-      // Start the keep-alive pinger only after the server is running
-      setInterval(keepAlive, interval);
-    });
-  })
-  .catch(err => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
-  });

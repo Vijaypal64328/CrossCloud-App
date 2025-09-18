@@ -83,10 +83,4 @@ VITE_RAZORPAY_KEY=your_razorpay_key_id
 
 ## File Storage
 
-For MongoDB-only storage, set:
-
-```
-STORAGE_DRIVER=gridfs
-MONGO_URI=your-mongodb-uri
-GRIDFS_BUCKET=uploads   # optional; defaults to uploads
-```
+Consider using cloud storage like AWS S3 or Digital Ocean Spaces for production file storage instead of local storage.

@@ -7,7 +7,6 @@ import {
   getPublicFile,
   downloadFile,
   getFileRaw,
-  getFileRawOwner,
   deleteFile,
   togglePublic
 } from "../controllers/fileController.js";
@@ -21,8 +20,6 @@ router.get("/public/:id", getPublicFile);
 router.get("/download/:id", downloadFile);
 // Raw public preview (only for public files)
 router.get("/raw/:id", getFileRaw);
-// Owner-only raw preview for private files
-router.get("/raw/:id/owner", requireAuth, getFileRawOwner);
 router.delete("/:id", requireAuth, deleteFile);
 router.patch("/:id/toggle-public", requireAuth, togglePublic);
 
