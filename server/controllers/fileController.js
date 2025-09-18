@@ -211,7 +211,7 @@ export const deleteFile = async (req, res) => {
     await s3.send(new DeleteObjectCommand(deleteParams));
 
     // Delete from database
-    await file.deleteOne();
+    await FileMetadata.findByIdAndDelete(req.params.id);
 
     res.sendStatus(204);
   } catch (err) {
