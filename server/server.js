@@ -35,7 +35,15 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json());
+
+// Increase payload size limits
+app.use(express.json({ limit: '2gb' }));
+app.use(express.urlencoded({ limit: '2gb', extended: true }));
+
+// Root route for health checks and keep-alive pings
+app.get("/", (req, res) => {
+  res.status(200).send("Backend is alive and running!");
+});
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
