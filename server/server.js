@@ -2,6 +2,7 @@ import "./configEnv.js";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import axios from "axios";
 
 import fileRoutes from "./routes/fileRoutes.js";
 import creditsRoutes from "./routes/creditsRoutes.js";
