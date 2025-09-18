@@ -114,6 +114,30 @@ export const getPresignedUrlForView = async (req, res) => {
   }
 };
 
+// Get user's own files
+export const getMyFiles = async (req, res) => {
+  try {
+    const clerkId = req.user.sub;
+    const files = await FileMetadata.find({ clerkId }).sort({ uploadedAt: -1 });
+    res.json(files);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching files" });
+  }
+};
+
+// Get public file metadata
+export const getPublicFile = async (req, res) => {
+  try {
+    const file = await FileMetadata.findById(req.params.id);
+    if (!file || !file.isPublic) {
+      return res.status(404).json({ error: "File not found" });
+    }
+    res.json(file);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching public file" });
+  }
+};
+
 // 4. Delete file from S3 and DB
 export const deleteFile = async (req, res) => {
   try {
