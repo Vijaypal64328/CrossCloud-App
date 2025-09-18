@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 // This route is now deprecated in favor of the presigned URL flow
-router.post("/upload", requireAuth, s3Upload.array("files", 10), uploadFiles);
+// router.post("/upload", requireAuth, s3Upload.array("files", 10), uploadFiles);
 
 // New routes for direct-to-S3 upload flow
 router.post("/presigned-url", requireAuth, getPresignedUrl);
