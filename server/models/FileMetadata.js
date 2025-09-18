@@ -7,7 +7,8 @@ const fileMetadataSchema = new mongoose.Schema({
   type: String,
   clerkId: String,
   isPublic: { type: Boolean, default: false },
-  uploadedAt: Date,
+  s3Key: String,
+  uploadedAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("FileMetadata", fileMetadataSchema);

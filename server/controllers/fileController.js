@@ -4,6 +4,7 @@ import {
   S3Client,
   DeleteObjectCommand,
   PutObjectAclCommand,
+  PutObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -32,7 +33,8 @@ export const getPresignedUrlForUpload = async (req, res) => {
 
     const key = `uploads/${randomBytes()}${path.extname(fileName)}`;
 
-    const command = new GetObjectCommand({
+    // Use PutObjectCommand to generate a presigned URL for uploading (PUT)
+    const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: key,
       ContentType: fileType,
