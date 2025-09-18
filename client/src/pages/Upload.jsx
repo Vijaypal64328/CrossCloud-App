@@ -10,7 +10,7 @@ import UploadBox from "../components/UploadBox.jsx";
 
 const Upload = () => {
   const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); //success or error
   const {getToken} = useAuth();
@@ -150,7 +150,7 @@ const Upload = () => {
           files={files}
           onFileChange={handleFileChange}
           onUpload={handleUpload}
-          uploading={uploading}
+          uploading={isUploading}
           onRemoveFile={handleRemoveFile}
           remainingCredits={credits}
           isUploadDisabled={isUploadDisabled}
